@@ -43,12 +43,14 @@
         //alert('iframe loaded')
         const imgStream = await fetch('/image/seedess-goddess-low-res.jpg')
           .then(res => res.body)
-        const [imgStream1, imgStream2] = imgStream.tee()
+        const [imgStream1, imgStreamCopy] = imgStream.tee()
+        const [imgStream2, imgStream3] = imgStreamCopy.tee()
 
         const blob = await fetch('/image/seedess-goddess-low-res.jpg')
           .then(res => res.blob())
 
         const blob2 = await Uint8ArrStreamToBlob(imgStream2)
+        const uri = await Uint8ArrStreamToDataUri(imgStream3)
 
         // control tests
         const img = document.createElement('img')
@@ -57,10 +59,14 @@
         output.appendChild(img)
         log('image src', img.src)
 
+        const img2 = document.createElement('img')
+        img2.src = uri
+        img2.style = 'width:100%'
+        output.appendChild(img2)
 
         const ab = await blob.arrayBuffer()
         const ab2 = await blob2.arrayBuffer()
-        console.log('blob contents', ab, ab2, new Uint8Array(ab), new Uint8Array(ab2))
+        log('blob contents', ab, ab2, new Uint8Array(ab), new Uint8Array(ab2), uri)
 
         // send stream via postmessage
         target.postMessage(imgStream1);

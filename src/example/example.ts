@@ -1,1 +1,1 @@
-import '../browser'
+import '../globals'
