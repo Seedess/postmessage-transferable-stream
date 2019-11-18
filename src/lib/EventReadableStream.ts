@@ -19,24 +19,22 @@ export default class EventReadableStream {
     const log = this.log
     log('createReadableStreamFromEvent', event)
     const port = event.ports[0]
-    let closed = false
     const readable = new ReadableStream({
       pull(controller) {
         log('requesting data', event, window.location.search)
-        port.onmessage = evt => {
-          if (evt.data) {
-            log('received data', evt.data)
-            controller.enqueue(evt.data) // evt.data is Uint8Array
-            port.postMessage(true) // send a pull request
-          } else if (evt.data === null) {
-            log('stream close received', evt.data)
-            if (closed === true) return // @todo fix this
-            closed = true
-            controller.close() // evt.data is null, means the stream ended
-            port.postMessage(null) // send a pull request
-          }
-        }
         port.postMessage(true) // send a pull request
+        return new Promise(resolve => {
+          port.onmessage = evt => {
+            if (evt.data) {
+              log('received data', evt.data)
+              controller.enqueue(evt.data) // evt.data is Uint8Array
+            } else if (evt.data === null) {
+              log('stream close received')
+              controller.close() // evt.data is null, means the stream ended
+            }
+            resolve()
+          }
+        })
       },
       cancel() {
         // This event is never executed

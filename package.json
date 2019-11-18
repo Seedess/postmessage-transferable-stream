@@ -18,7 +18,8 @@
         "development": "webpack-dev-server --config webpack/webpack.config.dev.js",
         "build": "NODE_ENV=production webpack --config webpack/webpack.config.prod.js",
         "watch": "npm run development",
-        "start": "npm run development"
+        "start": "npm run development",
+        "test": "cypress open"
     },
     "devDependencies": {
         "@babel/core": "^7.4.4",

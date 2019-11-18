@@ -35,6 +35,7 @@
       const iframe = document.querySelector('iframe');
       const target = new PostMessageTransferableStream(iframe.contentWindow);
       const log = target.log.extend('example:index')
+      const timer = target.log.extend('example:index:timer')
 
       iframe.addEventListener("load", onIframeLoaded);
 
@@ -75,39 +76,36 @@
     }
 
     async function loadIframe() {
-      //alert('loading child')
-      const header = document.querySelector('h1');
-      const output = document.querySelector('.output');
-      header.innerHTML = 'Iframe'
-      output.innerHTML = 'Iframe Output'
 
       const target = new PostMessageTransferableStream(window)
       const log = target.log.extend('example:page2')
-
-      target.addEventListener('message', onStreamMessage);
-
-    }
-
-    async function onStreamMessage(e) {
-
+      const timer = target.log.extend('example:page2:timer')
       const output = document.querySelector('.output');
-      const target = new PostMessageTransferableStream(window)
-      const log = target.log.extend('example:onStreamMessage')
-      log('iframe message', e.data, e.data.getReader)
-      
-      if (e.data instanceof ReadableStream) {
-        const stream = e.data
-        log('Page 2 has a readable stream', stream)
-        const img = document.createElement('img')
-        const blob = await Uint8ArrStreamToBlob(stream)
-        img.src = window.URL.createObjectURL(blob)
-        output.appendChild(img)
-        log('image src', img.src)
-      } else {
-        log('not a stream')
-      }
+      const header = document.querySelector('h1');
 
+      header.innerHTML = 'Iframe'
+      output.innerHTML = 'Iframe Output'
+      target.addEventListener('message', onStreamMessage);
+      timer('onStreamMessage handler attached')
+
+      async function onStreamMessage(e) {
+        log('iframe message', e.data, e.data.getReader)
+        if (e.data instanceof ReadableStream) {
+          const stream = e.data
+          timer('Page 2 has a readable stream', stream)
+          const img = document.createElement('img')
+          const blob = await Uint8ArrStreamToBlob(stream)
+          img.src = window.URL.createObjectURL(blob)
+          img.onload = () => timer('image loaded')
+          output.appendChild(img)
+          log('image src', img.src)
+        } else {
+          log('not a stream')
+        }
+      }
     }
+
+    
 
   </script>
 

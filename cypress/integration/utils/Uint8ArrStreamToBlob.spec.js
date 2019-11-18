@@ -2,6 +2,9 @@ const Uint8ArrStreamToBlob = require('../../../src/utils/Uint8ArrStreamToBlob')
 const baseUrl = 'http://localhost:9000'
 
 function getStreamContents(stream) {
+  if (!(stream instanceof ReadableStream)) {
+    throw TypeError('stream must be instance of ReadableStream')
+  }
   const reader = stream.getReader()
   const data = []
   return new Promise(resolve => {
@@ -29,10 +32,12 @@ context('Uint8ArrStreamToBlob', () => {
     const [ imgStream1, imgStream2 ] = imgStream.tee()
     const imgBlob = await Uint8ArrStreamToBlob(imgStream1)
     const imgContentsArr = await getStreamContents(imgStream2)
+    const imgBlobContents = await getStreamContents(imgBlob.stream())
     expect(imgStream1).to.be.instanceOf(ReadableStream)
     expect(imgBlob).to.be.instanceOf(Blob)
     cy.log('contents', imgContentsArr)
-    console.log('image contents array', imgContentsArr)
+    expect(imgBlobContents).to.not.deep.equal(new Blob([]))
+    expect(imgBlobContents).to.deep.equal(imgContentsArr)
   })
 
 })
