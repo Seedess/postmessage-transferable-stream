@@ -1,0 +1,25 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
+section {
+  height: 100vh;
+  color: aliceblue;
+
+  &:nth-child(1) {
+    background-image: url("https://picsum.photos/id/268/2400/1200");
+  }
+  &:nth-child(2) {
+    background-image: url("https://picsum.photos/id/234/2400/1200");
+  }
+  &:nth-child(3) {
+    background-image: url("https://picsum.photos/id/453/2400/1200");
+  }
+  &:nth-child(4) {
+    background-image: url("https://picsum.photos/id/121/2400/1200");
+  }
+  &:nth-child(5) {
+    background-image: url("https://picsum.photos/id/323/2400/1200");
+  }
+}

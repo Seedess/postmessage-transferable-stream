@@ -1,0 +1,114 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width">
+    <title>Channel messaging demo</title>
+    <link rel="stylesheet" href="">
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <h1>Channel messaging demo</h1>
+    <p class="output">Main body</p>
+    <div id="iframeWrap"></div>
+  </body>
+  <script>
+
+    // Load parent or iframe
+    if (window.location.search === '?page2') {
+      window.addEventListener("load", loadIframe);
+    } else {
+      window.addEventListener("load", loadParentPage);
+    }
+    
+    async function loadParentPage() {
+      //alert('loading parent')
+
+      const iframeWrap = document.querySelector('#iframeWrap')
+      iframeWrap.innerHTML = '<iframe src="index.html?page2" width="100%"></iframe>'
+
+      const output = document.querySelector('.output');
+      const iframe = document.querySelector('iframe');
+      const target = new PostMessageTransferableStream(iframe.contentWindow);
+      const log = target.log.extend('example:index')
+
+      iframe.addEventListener("load", onIframeLoaded);
+
+      async function onIframeLoaded() {
+        //alert('iframe loaded')
+        const imgStream = await fetch('/image/seedess-goddess-low-res.jpg')
+          .then(res => res.body)
+        const [imgStream1, imgStream2] = imgStream.tee()
+
+        const blob = await fetch('/image/seedess-goddess-low-res.jpg')
+          .then(res => res.blob())
+
+        const blob2 = await Uint8ArrStreamToBlob(imgStream2)
+
+        // control tests
+        const img = document.createElement('img')
+        img.src = window.URL.createObjectURL(blob)
+        img.style = 'width:100%'
+        output.appendChild(img)
+        log('image src', img.src)
+
+
+        const ab = await blob.arrayBuffer()
+        const ab2 = await blob2.arrayBuffer()
+        console.log('blob contents', ab, ab2, new Uint8Array(ab), new Uint8Array(ab2))
+
+        // send stream via postmessage
+        target.postMessage(imgStream1);
+        
+        target.addEventListener('message', event => {
+          if (event.data instanceof ReadableStream) {
+            log('event readable locked', event.data.locked)
+          }
+        });
+      }
+
+      
+    }
+
+    async function loadIframe() {
+      //alert('loading child')
+      const header = document.querySelector('h1');
+      const output = document.querySelector('.output');
+      header.innerHTML = 'Iframe'
+      output.innerHTML = 'Iframe Output'
+
+      const target = new PostMessageTransferableStream(window)
+      const log = target.log.extend('example:page2')
+
+      target.addEventListener('message', onStreamMessage);
+
+    }
+
+    async function onStreamMessage(e) {
+
+      const output = document.querySelector('.output');
+      const target = new PostMessageTransferableStream(window)
+      const log = target.log.extend('example:onStreamMessage')
+      log('iframe message', e.data, e.data.getReader)
+      
+      if (e.data instanceof ReadableStream) {
+        const stream = e.data
+        log('Page 2 has a readable stream', stream)
+        const img = document.createElement('img')
+        const blob = await Uint8ArrStreamToBlob(stream)
+        img.src = window.URL.createObjectURL(blob)
+        output.appendChild(img)
+        log('image src', img.src)
+      } else {
+        log('not a stream')
+      }
+
+    }
+
+  </script>
+
+</html>

@@ -1,0 +1,2 @@
+import PostMessageTransferableStream from './lib/PostMessageTransferableStream'
+export default PostMessageTransferableStream
